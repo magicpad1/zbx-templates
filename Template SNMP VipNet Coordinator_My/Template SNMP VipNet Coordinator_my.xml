@@ -1,0 +1,1725 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>6.4</version>
+    <template_groups>
+        <template_group>
+            <uuid>7df96b18c230490a9a0a9e2307226338</uuid>
+            <name>Templates</name>
+        </template_group>
+    </template_groups>
+    <templates>
+        <template>
+            <uuid>40a2e634ced745f794bcc66e93155b60</uuid>
+            <template>Template SNMP VipNet Coordinator_my</template>
+            <name>Template SNMP VipNet Coordinator_my</name>
+            <description>Modified template for VIpnet HW Coordinator.
+Tested on Vipnet HW1000 Q8
+
+KIZhuravlev@medma.su</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>d1af0eaeaace4f7fb8644c21cf177d3b</uuid>
+                    <name>CPU Load</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.2021.11.10.0</snmp_oid>
+                    <key>cpu.load</key>
+                    <history>30d</history>
+                    <units>%</units>
+                    <triggers>
+                        <trigger>
+                            <uuid>dd06337833514c59aca2c32682afccf6</uuid>
+                            <expression>min(/Template SNMP VipNet Coordinator_my/cpu.load,5m)&gt;{$CPU.UTIL.CRIT}</expression>
+                            <name>High CPU utilization</name>
+                            <event_name>High CPU utilization (over {$CPU.UTIL.CRIT}% for 5m)</event_name>
+                            <opdata>Current utilization: {ITEM.LASTVALUE1}</opdata>
+                            <priority>HIGH</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>692e8a6cce554114952093c616fad342</uuid>
+                    <name>CPU Model</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>hrDeviceDescr.196608</snmp_oid>
+                    <key>cpu.model</key>
+                    <delay>60m</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                </item>
+                <item>
+                    <uuid>eb409d8ef8394fc0a1d960ee442c393f</uuid>
+                    <name>Memory Available</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.2021.4.6.0</snmp_oid>
+                    <key>mem.avail</key>
+                    <history>30d</history>
+                    <units>B</units>
+                </item>
+                <item>
+                    <uuid>61a24d8682c34b18a76f2dbbf69e38fe</uuid>
+                    <name>Memory Available %</name>
+                    <type>CALCULATED</type>
+                    <key>mem.avail.percent</key>
+                    <history>30d</history>
+                    <value_type>FLOAT</value_type>
+                    <units>%</units>
+                    <params>(last(//mem.avail)/last(//mem.total))*100</params>
+                </item>
+                <item>
+                    <uuid>13ff54a426a947b3a7401dce9f2ba95e</uuid>
+                    <name>Memory Total</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.2021.4.5.0</snmp_oid>
+                    <key>mem.total</key>
+                    <history>30d</history>
+                    <units>B</units>
+                </item>
+                <item>
+                    <uuid>af923c6b0a6f4685b54be607eb70e98d</uuid>
+                    <name>Memory Used</name>
+                    <type>CALCULATED</type>
+                    <key>mem.used</key>
+                    <history>30d</history>
+                    <value_type>FLOAT</value_type>
+                    <units>B</units>
+                    <params>last(//mem.total)-last(//mem.avail)</params>
+                </item>
+                <item>
+                    <uuid>fc5564a6062e4e028405937b421c2292</uuid>
+                    <name>Memory Used %</name>
+                    <type>CALCULATED</type>
+                    <key>mem.used.percent</key>
+                    <history>30d</history>
+                    <value_type>FLOAT</value_type>
+                    <units>%</units>
+                    <params>(last(//mem.used)/last(//mem.total))*100</params>
+                    <triggers>
+                        <trigger>
+                            <uuid>9a38c0259f2c42beb01d325bc6c29d1f</uuid>
+                            <expression>min(/Template SNMP VipNet Coordinator_my/mem.used.percent,5m)&gt;{$MEMORY.UTIL.MAX}</expression>
+                            <name>High memory utilization</name>
+                            <event_name>High memory utilization (&gt;{$MEMORY.UTIL.MAX}% for 5m)</event_name>
+                            <opdata>Current utilization: {ITEM.LASTVALUE1}</opdata>
+                            <priority>HIGH</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>f38a2567ae9544fabd2b687bf083b00a</uuid>
+                    <name>System contact details</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>1.3.6.1.2.1.1.4.0</snmp_oid>
+                    <key>system.contact[sysContact.0]</key>
+                    <delay>8h</delay>
+                    <history>2w</history>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <description>MIB: SNMPv2-MIB
+The textual identification of the contact person for this managed node, together with information on how to contact this person.  If no contact information is known, the value is the zero-length string.</description>
+                    <inventory_link>CONTACT</inventory_link>
+                    <preprocessing>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <tags>
+                        <tag>
+                            <tag>component</tag>
+                            <value>system</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>f6975b0670e34a9da62447b971799921</uuid>
+                    <name>System description</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>1.3.6.1.2.1.1.1.0</snmp_oid>
+                    <key>system.descr[sysDescr.0]</key>
+                    <delay>8h</delay>
+                    <history>2w</history>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <description>MIB: SNMPv2-MIB
+A textual description of the entity. This value should
+include the full name and version identification of the system's hardware type, software operating-system, and
+networking software.</description>
+                    <preprocessing>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <tags>
+                        <tag>
+                            <tag>component</tag>
+                            <value>system</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>603a5f224f9f4e43ab5f8fc9bf7282fd</uuid>
+                    <name>System location</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>1.3.6.1.2.1.1.6.0</snmp_oid>
+                    <key>system.location[sysLocation.0]</key>
+                    <delay>8h</delay>
+                    <history>2w</history>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <description>MIB: SNMPv2-MIB
+The physical location of this node (e.g., `telephone closet, 3rd floor').  If the location is unknown, the value is the zero-length string.</description>
+                    <inventory_link>LOCATION</inventory_link>
+                    <preprocessing>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <tags>
+                        <tag>
+                            <tag>component</tag>
+                            <value>system</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>797e1d38d2224c1d95c520038711d924</uuid>
+                    <name>System name</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>1.3.6.1.2.1.1.5.0</snmp_oid>
+                    <key>system.name</key>
+                    <delay>1h</delay>
+                    <history>2w</history>
+                    <trends>0</trends>
+                    <value_type>CHAR</value_type>
+                    <description>MIB: SNMPv2-MIB
+An administratively-assigned name for this managed node.By convention, this is the node's fully-qualified domain name.  If the name is unknown, the value is the zero-length string.</description>
+                    <inventory_link>NAME</inventory_link>
+                    <preprocessing>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>12h</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <tags>
+                        <tag>
+                            <tag>component</tag>
+                            <value>system</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>0ee1055cb2314de0af49a817b99b1d1b</uuid>
+                    <name>ViPNet FailoverSendconfig Interface Name</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.5.0</snmp_oid>
+                    <key>ViPNet.FailoverIf</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <status>DISABLED</status>
+                    <value_type>TEXT</value_type>
+                    <description>Системное имя интерфейса, используемого для организации резервного канала</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>6818a4832dd5430db9e8cc2d9bc50541</uuid>
+                    <name>ViPNet FailoverIp</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.3.0</snmp_oid>
+                    <key>ViPNet.FailoverIp</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <status>DISABLED</status>
+                    <value_type>TEXT</value_type>
+                    <description>IP-адрес используемый узлом в резервном канале</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>a700f462d85c4eb290880ab120c7dff7</uuid>
+                    <name>ViPNet Failover Mode</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.1.0</snmp_oid>
+                    <key>VipNet.FailoverMode</key>
+                    <delay>60s</delay>
+                    <history>30d</history>
+                    <status>DISABLED</status>
+                    <description>Режим работы демона failover
+0 - single (одиночный)
+1 - cluster passive (узел работает в кластере и сейчас является пассивным узлом)
+2 - cluster active (узел работает в кластере и сейчас является активным узлом)
+
+3 - cluster switch (узле работает в класетере и сейчас изменяет свое состояние)</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                    <triggers>
+                        <trigger>
+                            <uuid>c14142142f254a9c94f896ec9b4ca49d</uuid>
+                            <expression>change(/Template SNMP VipNet Coordinator_my/VipNet.FailoverMode)&gt;0</expression>
+                            <name>VipNet {HOST.NAME} cluster Mode has just been switch</name>
+                            <status>DISABLED</status>
+                            <priority>WARNING</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>07effbc7109445798d77caab268dabc4</uuid>
+                    <name>ViPNet Failover Other Cluster Node Ip</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.6.1.2.1</snmp_oid>
+                    <key>ViPNet.FailoverNodeIp</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <status>DISABLED</status>
+                    <value_type>TEXT</value_type>
+                    <description>IP-адрес узла в резервном канале</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>278fc970415c45debadb224b1c5debe9</uuid>
+                    <name>ViPNet Failover Node Visibility Status</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.6.1.3.1</snmp_oid>
+                    <key>ViPNet.FailoverNodeVis</key>
+                    <delay>60s</delay>
+                    <history>30d</history>
+                    <status>DISABLED</status>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>9255baa1c6244689a9daae30bea924bb</uuid>
+                    <name>ViPNet Failover Sync Connections count</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.4.0</snmp_oid>
+                    <key>ViPNet.FailoverSync</key>
+                    <delay>10s</delay>
+                    <history>30d</history>
+                    <status>DISABLED</status>
+                    <units>conn</units>
+                    <description>Количество сетевых соединений, находящихся в кэше узла кластера</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>494ab172e62b45058f55557526b41150</uuid>
+                    <name>VipNet HostName</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.1.7.0</snmp_oid>
+                    <key>VipNet.HostName</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>имя узла в сети ViPNet</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet HostInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>16821ee5243949e0a0cdcde7c1a01b44</uuid>
+                    <name>VipNet network identifier</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.1.1.0</snmp_oid>
+                    <key>VipNet.Idendifier</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>VipNet network identifier in hexadecimal format.</description>
+                    <preprocessing>
+                        <step>
+                            <type>HEX_TO_DECIMAL</type>
+                            <parameters>
+                                <parameter/>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet HostInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>7e021021bf5844e1b7904f14ae358caf</uuid>
+                    <name>ViPNet Last Failover Event DateTime</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.8.2.0</snmp_oid>
+                    <key>ViPNet.LastFailoverEvent</key>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <status>DISABLED</status>
+                    <value_type>TEXT</value_type>
+                    <description>Значение системного времени, когда демон failover переключился в текущий режим работы</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet FailoverInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>8f86a7bbc14d434bbffafc4ddde012ef</uuid>
+                    <name>VipNet node full identifier</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.1.5.0</snmp_oid>
+                    <key>VipNet.Node.Identifier</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>VipNet node full identifier in hexadecimal format.</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet HostInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>bc795bad983442cca6b6eb6c2f89f393</uuid>
+                    <name>VipNet node identifier</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.1.2.0</snmp_oid>
+                    <key>VipNet.Node.Name</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>VipNet node identifier in hexadecimal format.</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet HostInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+                <item>
+                    <uuid>53db80441b334b32b13731b46e68780a</uuid>
+                    <name>VipNet uptime</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.1.4.0</snmp_oid>
+                    <key>VipNet.UpTime</key>
+                    <delay>30s</delay>
+                    <history>30d</history>
+                    <units>uptime</units>
+                    <description>VipNet daemon uptime.</description>
+                    <preprocessing>
+                        <step>
+                            <type>MULTIPLIER</type>
+                            <parameters>
+                                <parameter>0.01</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet HostInfo</value>
+                        </tag>
+                    </tags>
+                    <triggers>
+                        <trigger>
+                            <uuid>64af8387b5564d9e85ecce8f17a8acc0</uuid>
+                            <expression>change(/Template SNMP VipNet Coordinator_my/VipNet.UpTime)&lt;0</expression>
+                            <name>VipNet {HOST.NAME} has just been restarted</name>
+                            <priority>INFO</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>7d15de357ab744f581d755e9917be255</uuid>
+                    <name>ViPNet UserID</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>.1.3.6.1.4.1.10812.1.1.3.0</snmp_oid>
+                    <key>ViPNet.UserID</key>
+                    <delay>60m</delay>
+                    <history>30d</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <description>имя пользователя, пароль которого был введен для запуска ViPNet</description>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>VipNet</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>ViPNet HostInfo</value>
+                        </tag>
+                    </tags>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <uuid>cc4bfe4e716a43448bad7ed2e8ee8be6</uuid>
+                    <name>VipNet network interfaces</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#SNMPVALUE},.1.3.6.1.4.1.10812.1.2.2.1.2]</snmp_oid>
+                    <key>VipNet.Network.Interfaces</key>
+                    <delay>3600</delay>
+                    <description>Find all VipNet network interfaces.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>d0b43fde763548ee909142bfd39f8235</uuid>
+                            <name>Interface {#SNMPVALUE} Interface Physical Address</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifPhysAddress.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.addr.[{#SNMPVALUE}]</key>
+                            <delay>1h</delay>
+                            <history>30d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <preprocessing>
+                                <step>
+                                    <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                                    <parameters>
+                                        <parameter>1d</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>e569e65e1213406393492e7dc8bf25e1</uuid>
+                            <name>Interface {#SNMPVALUE} Admin status</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>ifAdminStatus.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.admin.status.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <description>MIB: IF-MIB
+The current operational state of the interface.
+- The testing(3) state indicates that no operational packet scan be passed
+- If ifAdminStatus is down(2) then ifOperStatus should be down(2)
+- If ifAdminStatus is changed to up(1) then ifOperStatus should change to up(1) if the interface is ready to transmit and receive network traffic
+- It should change todormant(5) if the interface is waiting for external actions (such as a serial line waiting for an incoming connection)
+- It should remain in the down(2) state if and only if there is a fault that prevents it from going to the up(1) state
+- It should remain in the notPresent(6) state if the interface has missing(typically, hardware) components.</description>
+                            <valuemap>
+                                <name>IF-MIB::ifOperStatus</name>
+                            </valuemap>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>42c045c7ee814cf683e68b4810584424</uuid>
+                            <name>Interface {#SNMPVALUE} Inbound packets discarded</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.in.discards.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>MIB: IF-MIB
+The number of inbound packets which were chosen to be discarded
+even though no errors had been detected to prevent their being deliverable to a higher-layer protocol.
+One possible reason for discarding such a packet could be to free up buffer space.
+Discontinuities in the value of this counter can occur at re-initialization of the management system,
+and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>b1588592b3f84855a6bf82979a13be4c</uuid>
+                            <name>Interface {#SNMPVALUE} Inbound packets with errors</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.in.errors.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>MIB: IF-MIB
+For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol.  For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol. Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>0e4ad6e4716447de8d760f4403ebcf7c</uuid>
+                            <name>Interface {#SNMPVALUE} Bits received</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.in.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>bps</units>
+                            <description>MIB: IF-MIB
+The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets. Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
+                            <valuemap>
+                                <name>IF-MIB::ifType</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>8</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>8cb21283b6fd44118811f60a0afa5391</uuid>
+                            <name>Interface {#SNMPVALUE} Outbound packets discarded</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.out.discards.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>MIB: IF-MIB
+The number of outbound packets which were chosen to be discarded
+even though no errors had been detected to prevent their being deliverable to a higher-layer protocol.
+One possible reason for discarding such a packet could be to free up buffer space.
+Discontinuities in the value of this counter can occur at re-initialization of the management system,
+and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>7840cb1f696b408098768a05572ed66e</uuid>
+                            <name>Interface {#SNMPVALUE} Outbound packets with errors</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.out.errors.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>MIB: IF-MIB
+For packet-oriented interfaces, the number of outbound packets that contained errors preventing them from being deliverable to a higher-layer protocol.  For character-oriented or fixed-length interfaces, the number of outbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol. Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>6ce0ee804850461ebda7096c19d5ca90</uuid>
+                            <name>Interface {#SNMPVALUE} Bits sent</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.out.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>bps</units>
+                            <description>MIB: IF-MIB
+The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifOutOctets.Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times as indicated by the value of ifCounterDiscontinuityTime.</description>
+                            <valuemap>
+                                <name>IF-MIB::ifType</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>8</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>c176731d40ec43c988303daa1298ab98</uuid>
+                            <name>Interface {#SNMPVALUE} Interface Speed</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.speed.[{#SNMPVALUE}]</key>
+                            <delay>5m</delay>
+                            <history>30d</history>
+                            <units>bps</units>
+                            <description>MIB: IF-MIB
+An estimate of the interface's current bandwidth in units of 1,000,000 bits per second. If this object reports a value of `n' then the speed of the interface is somewhere in the range of `n-500,000' to`n+499,999'.  For interfaces which do not vary in bandwidth or for those where no accurate estimation can be made, this object should contain the nominal bandwidth. For a sub-layer which has no concept of bandwidth, this object should be zero.</description>
+                            <valuemap>
+                                <name>IF-MIB::ifType</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>1000000</parameter>
+                                    </parameters>
+                                </step>
+                                <step>
+                                    <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                                    <parameters>
+                                        <parameter>1h</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>2fa6c78cc5bc4d11890e60640f65c0c7</uuid>
+                            <name>Interface {#SNMPVALUE} Operational status</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.status.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <description>MIB: IF-MIB
+The current operational state of the interface.
+- The testing(3) state indicates that no operational packet scan be passed
+- If ifAdminStatus is down(2) then ifOperStatus should be down(2)
+- If ifAdminStatus is changed to up(1) then ifOperStatus should change to up(1) if the interface is ready to transmit and receive network traffic
+- It should change todormant(5) if the interface is waiting for external actions (such as a serial line waiting for an incoming connection)
+- It should remain in the down(2) state if and only if there is a fault that prevents it from going to the up(1) state
+- It should remain in the notPresent(6) state if the interface has missing(typically, hardware) components.</description>
+                            <valuemap>
+                                <name>IF-MIB::ifOperStatus</name>
+                            </valuemap>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>407533906e32443595ab2559d5794a65</uuid>
+                            <name>Interface {#SNMPVALUE} Interface type</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>1.3.6.1.2.1.2.2.1.3.{#SNMPINDEX}</snmp_oid>
+                            <key>net.if.type.[{#SNMPVALUE}]</key>
+                            <delay>1h</delay>
+                            <history>30d</history>
+                            <description>MIB: IF-MIB
+The type of interface.
+Additional values for ifType are assigned by the Internet Assigned Numbers Authority (IANA),
+through updating the syntax of the IANAifType textual convention.</description>
+                            <valuemap>
+                                <name>IF-MIB::ifType</name>
+                            </valuemap>
+                            <preprocessing>
+                                <step>
+                                    <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                                    <parameters>
+                                        <parameter>1d</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>137b34a37c7b436e954bb742ba8f24ae</uuid>
+                            <name>Interface {#SNMPVALUE} Allowed inbound encrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.8.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.AIEP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of allowed inbound encrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>3b3bacbe9b13423989da9b47c3da3053</uuid>
+                            <name>Interface {#SNMPVALUE} Allowed inbound unencrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.4.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.AIUP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of allowed inbound unencrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>5f23245e69c846ccbbc4ebe9bf6e191e</uuid>
+                            <name>Interface {#SNMPVALUE} Allowed outbound encrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.10.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.AOEP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of allowed outbound encrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>4db1c6345a974c20af58c2829bde12f0</uuid>
+                            <name>Interface {#SNMPVALUE} Allowed outbound unencrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.6.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.AOUP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of allowed outbound unencrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>dc66d6ab205347a3aa552a0303069903</uuid>
+                            <name>Interface {#SNMPVALUE} Blocked inbound encrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.9.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.BIEP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of blocked inbound encrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>1b8951e095a74e00a06dc0e7f16a8509</uuid>
+                            <name>Interface {#SNMPVALUE} Blocked inbound unencrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.5.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.BIUP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of blocked inbound unencrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>939b9f1c1f3444fc993529ca7a013388</uuid>
+                            <name>Interface {#SNMPVALUE} Blocked outbound encrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.11.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.BOEP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of blocked outbound encrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>4b6f725796fc4b44a5cb94b2b789d4f2</uuid>
+                            <name>Interface {#SNMPVALUE} Blocked outbound unencrypted packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.2.2.1.7.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.BOUP[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of blocked outbound unencrypted packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>ad5347a6b07d457a8dda8b8722e8cd78</uuid>
+                            <name>Interface {#SNMPVALUE} Inbound broadcast packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifInBroadcastPkts.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.inbound.broadcast.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of inbound broadcast packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>afa7c2c35b414d8a98f9fe065c15cb5a</uuid>
+                            <name>Interface {#SNMPVALUE} Inbound multicast packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifInMulticastPkts.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.inbound.multicast.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of inbound multicast packets</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>3aea68a30018428caf38c6c4c519fc5a</uuid>
+                            <name>Interface {#SNMPVALUE} Inbound unicast packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifInUcastPkts.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.inbound.unicast.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of inbound multicast packets</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>03c2188f39dd46b5ab4387785487130c</uuid>
+                            <name>Interface {#SNMPVALUE} Inbound unknown protocol packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifInUnknownProtos.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.inbound.unknown.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of inbound multicast packets</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>07f758e5aca54eed9aa1acc628a14640</uuid>
+                            <name>Interface {#SNMPVALUE} Outbound broadcast packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifOutBroadcastPkts.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.outbound.broadcast.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of outbound broadcast packets.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>a17df36263bc47a7badfd2c72d1d88f9</uuid>
+                            <name>Interface {#SNMPVALUE} Outbound multicast packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifOutMulticastPkts.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.outbound.multicast.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of allowed outbound multicast packets</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>467c7c93bbb3440f9d91388458146e9d</uuid>
+                            <name>Interface {#SNMPVALUE} Outbound queue length</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifOutQLen.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.outbound.queue.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Size of queue length</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>8b4cc6c21367432cb7f265906185b84b</uuid>
+                            <name>Interface {#SNMPVALUE} Outbound unicast packets</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.ifOutUcastPkts.{#SNMPINDEX}</snmp_oid>
+                            <key>Vipnet.Interface.outbound.unicast.[{#SNMPVALUE}]</key>
+                            <history>30d</history>
+                            <units>pkts</units>
+                            <description>Number of allowed outbound multicast packets</description>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Interfaces</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <uuid>215d2f97ffd24f8b82df5dd9538683b9</uuid>
+                            <name>VipNet statistic on interface {#SNMPVALUE}</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.AIEP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <color>F63100</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.AIUP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>3</sortorder>
+                                    <color>2774A4</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.AOEP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>4</sortorder>
+                                    <color>A54F10</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.AOUP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>5</sortorder>
+                                    <color>FC6EA3</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.BIEP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>6</sortorder>
+                                    <color>6C59DC</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.BIUP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>7</sortorder>
+                                    <color>AC8C14</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.BOEP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>8</sortorder>
+                                    <color>611F27</color>
+                                    <calc_fnc>ALL</calc_fnc>
+                                    <item>
+                                        <host>Template SNMP VipNet Coordinator_my</host>
+                                        <key>Vipnet.Interface.BOUP[{#SNMPVALUE}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <uuid>0a6281aaea6145d3b3966bb0e497debc</uuid>
+                    <name>VipNet services</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#SNMPVALUE},.1.3.6.1.4.1.10812.1.7.1.1.2]</snmp_oid>
+                    <key>VipNet.Services</key>
+                    <delay>3600</delay>
+                    <description>Find all VipNet services.</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>80dd02d1da9e43cb8651f95a876b59c7</uuid>
+                            <name>VipNet service {#SNMPVALUE} status</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.7.1.1.3.{#SNMPINDEX}</snmp_oid>
+                            <key>VipNet.Service.Status[{#SNMPVALUE}]</key>
+                            <delay>300</delay>
+                            <history>30d</history>
+                            <description>VipNet service status.
+(1) - service stopped.
+(2) - service started.</description>
+                            <valuemap>
+                                <name>VipNet service state</name>
+                            </valuemap>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Services</value>
+                                </tag>
+                            </tags>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>a306799aec62426181fc6ffdaae97944</uuid>
+                                    <expression>last(/Template SNMP VipNet Coordinator_my/VipNet.Service.Status[{#SNMPVALUE}])&lt;&gt;2</expression>
+                                    <name>Vipnet service {#SNMPVALUE} on {HOST.NAME} down</name>
+                                    <priority>WARNING</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>7fdc67a40cb04c21ad7f34114c480f58</uuid>
+                            <name>VipNet service {#SNMPVALUE} uptime</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>.1.3.6.1.4.1.10812.1.7.1.1.4.{#SNMPINDEX}</snmp_oid>
+                            <key>VipNet.Service.Uptime[{#SNMPVALUE}]</key>
+                            <delay>300</delay>
+                            <history>30d</history>
+                            <units>uptime</units>
+                            <description>VipNet service uptime.</description>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>0.01</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>VipNet</value>
+                                </tag>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>ViPNet Services</value>
+                                </tag>
+                            </tags>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>2e2b77361cd5448994113de5a4b5255f</uuid>
+                                    <expression>change(/Template SNMP VipNet Coordinator_my/VipNet.Service.Uptime[{#SNMPVALUE}])&lt;0</expression>
+                                    <name>Vipnet service {#SNMPVALUE} on {HOST.NAME} restarted</name>
+                                    <priority>INFO</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$CPU.UTIL.CRI}</macro>
+                    <value>80</value>
+                </macro>
+                <macro>
+                    <macro>{$MEMORY.UTIL.MAX}</macro>
+                    <value>70</value>
+                </macro>
+            </macros>
+            <dashboards>
+                <dashboard>
+                    <uuid>652482576548416caf0cc2b2e35a5d7a</uuid>
+                    <name>Sensors</name>
+                    <pages>
+                        <page/>
+                    </pages>
+                </dashboard>
+            </dashboards>
+            <valuemaps>
+                <valuemap>
+                    <uuid>85490546503042cbab24af3e4b2b5d12</uuid>
+                    <name>IF-MIB::ifOperStatus</name>
+                    <mappings>
+                        <mapping>
+                            <value>1</value>
+                            <newvalue>up</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>2</value>
+                            <newvalue>down</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>4</value>
+                            <newvalue>unknown</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>5</value>
+                            <newvalue>dormant</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>6</value>
+                            <newvalue>notPresent</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>7</value>
+                            <newvalue>lowerLayerDown</newvalue>
+                        </mapping>
+                    </mappings>
+                </valuemap>
+                <valuemap>
+                    <uuid>ba5f67bed7a24fa6b8891fbd4b738afc</uuid>
+                    <name>IF-MIB::ifType</name>
+                    <mappings>
+                        <mapping>
+                            <value>6</value>
+                            <newvalue>ethernetCsmacd</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>24</value>
+                            <newvalue>softwareLoopback</newvalue>
+                        </mapping>
+                    </mappings>
+                </valuemap>
+                <valuemap>
+                    <uuid>acfe44593db64aaa92e614b8ceaafa39</uuid>
+                    <name>ViPNet Failover Mode</name>
+                    <mappings>
+                        <mapping>
+                            <value>0</value>
+                            <newvalue>Single</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>1</value>
+                            <newvalue>ClusterPassive</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>2</value>
+                            <newvalue>ClusterActive</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>3</value>
+                            <newvalue>ClusterSwitch</newvalue>
+                        </mapping>
+                    </mappings>
+                </valuemap>
+                <valuemap>
+                    <uuid>948dff22220340eba1f6eb96c4d59f20</uuid>
+                    <name>ViPNet Failover Node Visibility Status</name>
+                    <mappings>
+                        <mapping>
+                            <value>1</value>
+                            <newvalue>Reachable</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>2</value>
+                            <newvalue>Unreachable</newvalue>
+                        </mapping>
+                    </mappings>
+                </valuemap>
+                <valuemap>
+                    <uuid>c3b456ad144543b8a3bc0b1985715363</uuid>
+                    <name>VipNet service state</name>
+                    <mappings>
+                        <mapping>
+                            <value>1</value>
+                            <newvalue>Down</newvalue>
+                        </mapping>
+                        <mapping>
+                            <value>2</value>
+                            <newvalue>Up</newvalue>
+                        </mapping>
+                    </mappings>
+                </valuemap>
+            </valuemaps>
+        </template>
+    </templates>
+    <graphs>
+        <graph>
+            <uuid>5cf07253cb3b465885c3e0d6e9f1c945</uuid>
+            <name>CPU Utilization</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Template SNMP VipNet Coordinator_my</host>
+                        <key>cpu.load</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>1b16ebd548184a39b37d5a93814dcece</uuid>
+            <name>Mem Stat</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Template SNMP VipNet Coordinator_my</host>
+                        <key>mem.avail</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Template SNMP VipNet Coordinator_my</host>
+                        <key>mem.used</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>8bbbfe9be14b46ddaa0a26231f9cd614</uuid>
+            <name>Mem Stat %</name>
+            <graph_items>
+                <graph_item>
+                    <color>199C0D</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Template SNMP VipNet Coordinator_my</host>
+                        <key>mem.avail.percent</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <calc_fnc>ALL</calc_fnc>
+                    <item>
+                        <host>Template SNMP VipNet Coordinator_my</host>
+                        <key>mem.used.percent</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <uuid>26754953400f46888ab739a37fcc14aa</uuid>
+            <name>ViPNet Failover Mode</name>
+            <graph_items>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>1A7C11</color>
+                    <item>
+                        <host>Template SNMP VipNet Coordinator_my</host>
+                        <key>VipNet.FailoverMode</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+    </graphs>
+</zabbix_export>
