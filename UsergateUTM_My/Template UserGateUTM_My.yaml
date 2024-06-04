@@ -1,0 +1,1316 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 36bff6c29af64692839d077febfc7079
+      name: 'Templates/Network devices'
+  templates:
+    - uuid: 74c7e97763f746d9840dd5dbe5ba24e4
+      template: 'Template UserGateUTM_My'
+      name: 'Template UserGateUTM_My'
+      description: |
+        orig:
+        https://github.com/AndAndr
+        
+        Modified template for SNMP Usergate UTM Monitoring
+        Different discovery rules for 32 and 64 bit SNMP values
+        
+        Tested on Usegate D500, Usergate VE2000 
+        FW: 6.1.9
+        
+        1. Enable + config SNMP on UTM
+        2. Map template + run autodiscovery
+        3. Disable elements for all interfaces in down oper state
+        
+        
+        Contact: telegram @Magicpad
+      groups:
+        - name: 'Templates/Network devices'
+      items:
+        - uuid: 5f4f0b8c943f4e3c8c86512baad67b89
+          name: 'CPU load percentage'
+          type: SNMP_AGENT
+          snmp_oid: 'UTM-MIB::cpuLoad.0'
+          key: cpuLoad
+          history: 14d
+          trends: 60d
+          units: '%'
+          description: 'Утилизация CPU'
+          tags:
+            - tag: Application
+              value: System
+          triggers:
+            - uuid: f4aafde3d8a644199c14c3ff6d5598a6
+              expression: 'min(/Template UserGateUTM_My/cpuLoad,5m)>{$CPU_USED_MAX}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'max(/Template UserGateUTM_My/cpuLoad,5m)<{$CPU_USED_MAX}-5'
+              name: 'CPU load is too high!'
+              priority: AVERAGE
+        - uuid: 02d112ee55c147e6a328f69e17f370a6
+          name: 'Used space on log disk percentage'
+          type: SNMP_AGENT
+          snmp_oid: 'UTM-MIB::logDiskSpace.0'
+          key: logDiskSpace
+          delay: 30m
+          history: 14d
+          trends: 60d
+          units: '%'
+          description: 'Утилизация раздела журналов'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 6h
+          tags:
+            - tag: Application
+              value: System
+          triggers:
+            - uuid: 24d2ac0d52b2423ba5bf2e9241797ceb
+              expression: 'last(/Template UserGateUTM_My/logDiskSpace)>{$LOG_USED_MAX}'
+              name: 'Check used space on log disk'
+              priority: WARNING
+        - uuid: 80eaad0a74894e53b6d52ed7cd8a9cca
+          name: 'Memory used percentage'
+          type: SNMP_AGENT
+          snmp_oid: 'UTM-MIB::memoryUsed.0'
+          key: memoryUsed
+          history: 10d
+          trends: 60d
+          units: '%'
+          description: 'Утилизация памяти'
+          tags:
+            - tag: Application
+              value: System
+          triggers:
+            - uuid: 1c0f1321f4394daa865d57029b7f28ad
+              expression: 'min(/Template UserGateUTM_My/memoryUsed,5m)>{$MEM_LOAD_MAX}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'max(/Template UserGateUTM_My/memoryUsed,5m)<{$MEM_LOAD_MAX}-5'
+              name: 'Memory utilization  is too high!'
+              priority: AVERAGE
+        - uuid: 38f85cfc73fd4f99b998b5d3fdd2fd52
+          name: UnknownTRAP
+          type: SNMP_TRAP
+          key: snmptrap.fallback
+          delay: '0'
+          history: 7d
+          trends: '0'
+          value_type: LOG
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 5cad07e692334fc5a7584463b7544e1a
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap.fallback,{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Unknown event on {HOST.NAME}'
+              opdata: 'SNMPTrap: Неизвестное событие'
+              priority: AVERAGE
+              manual_close: 'YES'
+        - uuid: a70e506520dc48899fa4353cd931305b
+          name: trapAttackDetected
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapAttackDetected|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.3\.1]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Notification about IDPS attack'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 00a93a62b140420b99900f845e07746f
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapAttackDetected|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.3\.1],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Notification about IDPS attack on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: WARNING
+              description: 'Notification about IDPS attack'
+              manual_close: 'YES'
+        - uuid: 6019a17036cc41b69228dbe82024b67d
+          name: trapCableStatus
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapCableStatus|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.7]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Cable was plugged/unplugged from interface'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: a637c72e0a194072abaeece4afd61f2a
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapCableStatus|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.7],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Cable was plugged/unplugged on {HOST.NAME}'
+              priority: AVERAGE
+              description: 'Cable was plugged/unplugged from interface'
+              manual_close: 'YES'
+        - uuid: 5b0a88f0f61a4571880519753fed55db
+          name: trapChecksumFailed
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapChecksumFailed|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.1]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Some files checksum failed'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: e5265b90f8bc496ea2cf09f3d8ae0a5a
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapChecksumFailed|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.1],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Files checksum failed on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'Some files checksum failed'
+              manual_close: 'YES'
+        - uuid: c6c7380818944b9c84350a22e3c58264
+          name: trapCoreBootstrapEnd
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapCoreBootstrapEnd|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.3]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Notification about utm-core boot finished'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 4f059ba34b7c438d90980501effe0e83
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapCoreBootstrapEnd|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.3],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: Utm-core boot finished on {HOST.NAME}'
+              priority: INFO
+              description: 'Notification about utm-core boot finished'
+              manual_close: 'YES'
+        - uuid: c29b01473c3444d082f78412784e2431
+          name: trapCoreCrush
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapCoreCrush|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.1]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Notification about core crushing'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: e7f69451c993423195130d37c7cad746
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapCoreCrush|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.1],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Core crushing on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: HIGH
+              description: 'Notification about core crushing'
+              manual_close: 'YES'
+        - uuid: 266021a761694a85b08c8c91c053cbf6
+          name: trapDefaultGatewayChanged
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapDefaultGatewayChanged|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.4]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Default gateway IP changed'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 36bdf2b71cc147568f991284dca1b88b
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapDefaultGatewayChanged|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.4],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: Default gateway IP changed on {HOST.NAME}'
+              priority: INFO
+              description: 'Default gateway IP changed'
+              manual_close: 'YES'
+        - uuid: 2a44e56866ae4e8c9685695baeb91e41
+          name: trapHighCPUUsage
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapHighCPUUsage|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.2]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'High CPU usage notification'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: cb8d47723fe44be4b6774f41d3a74083
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapHighCPUUsage|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.2],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: High CPU usage notification on {HOST.NAME}'
+              priority: WARNING
+              description: 'High CPU usage notification'
+              manual_close: 'YES'
+        - uuid: cbe31fc916214c159466497d6f9beaef
+          name: trapHighSessionsCounter
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapHighSessionsCounter|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.5]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Active sessions number are near the limit'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 7b9c1e771b084e618eb67b9dc0a41f13
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapHighSessionsCounter|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.5],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: Active sessions number are near the limit on {HOST.NAME}'
+              priority: WARNING
+              description: 'Active sessions number are near the limit'
+              manual_close: 'YES'
+        - uuid: 4862a4d248af4b4a8850945d7141ee8b
+          name: trapHighUsersCounter
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapHighUsersCounter|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.6]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Active users number are near the limit'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: d546547a06284076a70a7f958f92ef23
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapHighUsersCounter|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.6],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: Active users number are near the limit on {HOST.NAME}'
+              priority: WARNING
+              description: 'Active users number are near the limit'
+              manual_close: 'YES'
+        - uuid: 6af55e38ca69458abc3844e34f807660
+          name: trapLDAPServerDown
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapLDAPServerDown|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.6\.1]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'LDAP Server is not responding'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 47925257583147e28851a4ff9b8ceacc
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapLDAPServerDown|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.6\.1],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: LDAP Server is not responding on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: WARNING
+              description: 'LDAP Server is not responding'
+              manual_close: 'YES'
+        - uuid: 8f88b50a8656457bbd3f18300fd29ac8
+          name: trapLowLogdiskSpace
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapLowLogdiskSpace|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.4]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Low log disk space notification'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 80b0a069502d4e369494ffc65ac607e0
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapLowLogdiskSpace|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.4],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Low log disk space on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'Low log disk space notification'
+              manual_close: 'YES'
+        - uuid: c56d02a2a75d4615af461487c2075d80
+          name: trapLowMemory
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapLowMemory|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.3]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Low memory notification'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: e6f469d812b24af4915c476443cf38d2
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapLowMemory|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.3],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Low memory on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'Low memory notification'
+              manual_close: 'YES'
+        - uuid: 04543a2962cb4e43937c7607ec5b7851
+          name: trapMemberDown
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapMemberDown|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.2\.3]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'HA cluster node offline'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: cb4d6af11c234cd08b9ad2dc0ce7a5a0
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapMemberDown|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.2\.3],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: HA cluster node offline on {HOST.NAME}'
+              priority: AVERAGE
+              description: 'HA cluster node offline'
+              manual_close: 'YES'
+        - uuid: c8926526a6624f429ec3bbecf37b4929
+          name: trapMemberUp
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapMemberUp|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.2\.2]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'HA cluster node online'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 371432d58228423d893e804723bd56b8
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapMemberUp|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.2\.2],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: HA cluster node online on {HOST.NAME}'
+              priority: INFO
+              description: 'HA cluster node online'
+              manual_close: 'YES'
+        - uuid: 985daa7a2ff84274b4aedcb663171f57
+          name: trapPowerSupply
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapPowerSupply|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.6]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Power supply unit 1 switched off'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 476619568d0d4703a65fa7d0d06819f2
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapPowerSupply|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.6],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Power supply unit switched off on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'Power supply unit switched off'
+              manual_close: 'YES'
+        - uuid: c8b7764f0ee049898d2aab933fcc6d9b
+          name: trapRaidStatus
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapRaidStatus|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.5]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Raid status is changed'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: a7a312ee01ca4eb398a2525d7cf54b12
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapRaidStatus|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.4\.5],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Raid status is changed on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'Raid status is changed'
+              manual_close: 'YES'
+        - uuid: a66880684c8341cabba14510181abbab
+          name: trapStatDown
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapStatDown|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.2]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Notification about statistics server shutting down'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: a85eaf91a7f44e4f8b32bfeb56ffc039
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapStatDown|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.1\.2],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: Notification about statistics server shutting down on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'Notification about statistics server shutting down'
+              manual_close: 'YES'
+        - uuid: 2efceef1f96649bd81cb429a672f1d64
+          name: trapStatusChanged
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapStatusChanged|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.2\.1]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'HA cluster node status changed notification'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: 3e22b59efa474089834a0aff5bd74006
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapStatusChanged|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.2\.1],{$TRAPPEDTRIGGER_TTL})=0'
+              recovery_mode: NONE
+              name: 'SNMPTrap: HA cluster node status changed on {HOST.NAME}'
+              opdata: 'Проверь, если ОК - закрой вручную.'
+              priority: AVERAGE
+              description: 'HA cluster node status changed notification'
+              manual_close: 'YES'
+        - uuid: c7d20ab99b0245aab96d43d45586f390
+          name: trapTrafficDrop
+          type: SNMP_TRAP
+          key: 'snmptrap[UTM-TRAPS-MIB::trapTrafficDrop|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.5\.1]'
+          delay: '0'
+          history: 2w
+          trends: '0'
+          value_type: LOG
+          description: 'Firewall DENY rule triggered'
+          tags:
+            - tag: Application
+              value: Traps
+          triggers:
+            - uuid: af6c5da5c4974ba3a40e68c3f1216d25
+              expression: 'nodata(/Template UserGateUTM_My/snmptrap[UTM-TRAPS-MIB::trapTrafficDrop|SNMPv2-SMI::enterprises\.45741\.2\.10\.1\.5\.1],{$TRAPPEDTRIGGER_TTL})=0'
+              name: 'SNMPTrap: Firewall DENY rule triggered on {HOST.NAME}'
+              priority: INFO
+              description: 'Сработало запрещающее правило межсетевого экрана.'
+              manual_close: 'YES'
+        - uuid: 54b245bec57f4352aff92dce4020fc05
+          name: 'Device Uptime'
+          type: SNMP_AGENT
+          snmp_oid: 'RFC1213-MIB::sysUpTime.0'
+          key: 'system.uptime[sysUpTime.0]'
+          delay: 5m
+          history: 2w
+          trends: '0'
+          units: uptime
+          description: 'Время работы'
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: Application
+              value: System
+          triggers:
+            - uuid: 7b60d7e90cd344bf9d13cec3609fd1b9
+              expression: 'nodata(/Template UserGateUTM_My/system.uptime[sysUpTime.0],10m)=1'
+              name: '{HOST.NAME} does not respond to SNMP requests!'
+              priority: HIGH
+              description: 'Устройство перестало отвечать на SNMP-запросы.'
+              manual_close: 'YES'
+            - uuid: 04391d903b264748aae79c23e45c1721
+              expression: 'last(/Template UserGateUTM_My/system.uptime[sysUpTime.0])<10m'
+              name: '{HOST.NAME} has been restarted!'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: f06aa772d032488eb7dfb7aae9a4d4c1
+          name: 'The number of active current users'
+          type: SNMP_AGENT
+          snmp_oid: 'UTM-MIB::usersCounter.0'
+          key: usersCounter
+          history: 10d
+          trends: 60d
+          units: Users
+          description: 'Количество активных пользователей'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 10m
+          tags:
+            - tag: Application
+              value: System
+        - uuid: ba939081843349d9964496b6b82c40eb
+          name: 'vCPU percentage'
+          type: CALCULATED
+          key: vCPU.percentage
+          history: 14d
+          trends: 60d
+          value_type: FLOAT
+          units: '%'
+          params: '100*last(//vcpuUsage)/(last(//vcpuCount)*100)'
+          description: 'Процент утилизации vCPU'
+          tags:
+            - tag: Application
+              value: System
+          triggers:
+            - uuid: 2d37b8b675d346758219f4deaaa2eed1
+              expression: 'last(/Template UserGateUTM_My/vCPU.percentage)>{$VCPU_USED_MAX}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'avg(/Template UserGateUTM_My/vCPU.percentage,10m)<{$VCPU_USED_MAX}-10'
+              name: 'vCPU load is too high!'
+              priority: AVERAGE
+        - uuid: 1be85db8f29245ecb4d34f0ae9e30a1a
+          name: 'vCPU count'
+          type: SNMP_AGENT
+          snmp_oid: 'UTM-MIB::vcpuCount.0'
+          key: vcpuCount
+          delay: 10m
+          history: 2d
+          trends: '0'
+          units: vCPU
+          description: 'Количество vCPU'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          tags:
+            - tag: Application
+              value: System
+        - uuid: a89078fe8fed4c08b52c77a83df823dd
+          name: 'vCPU used'
+          type: SNMP_AGENT
+          snmp_oid: 'UTM-MIB::vcpuUsage.0'
+          key: vcpuUsage
+          history: 14d
+          trends: 60d
+          units: '%'
+          description: 'Утилизация vCPU'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 10m
+          tags:
+            - tag: Application
+              value: System
+      discovery_rules:
+        - uuid: 6a501c18966f45879f03e8e1977abc31
+          name: 'Physical Network Interfaces'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},UTM-INTERFACES-MIB::ifDescr]'
+          key: ifDescr
+          delay: 2h
+          lifetime: 1d
+          item_prototypes:
+            - uuid: bf8d0e4359404f6ab503abaaede58abf
+              name: 'Interface {#SNMPVALUE} Interface Admin status'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifAdminStatus.{#SNMPINDEX}'
+              key: 'ifAdminStatus[{#SNMPVALUE}]'
+              delay: 5m
+              history: 30d
+              valuemap:
+                name: 'SNMP interface status (ifAdminStatus)'
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 78c00e5a1a1f40f08b7b245db1557a63
+              name: 'Interface {#SNMPVALUE} Description'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifDescr.{#SNMPINDEX}'
+              key: 'ifDescr[{#SNMPVALUE}]'
+              delay: 1h
+              history: 30d
+              trends: '0'
+              value_type: CHAR
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 69261da10a3b41fe8d2b98743c36bd93
+              name: 'Interface {#SNMPVALUE} Incoming discarded packets'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifInDiscards.{#SNMPINDEX}'
+              key: 'ifInDiscards[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: dcb143923c664447b0e050b6211a0709
+              name: 'Interface {#SNMPVALUE} Incoming packets with errors'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifInErrors.{#SNMPINDEX}'
+              key: 'ifInErrors[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+              trigger_prototypes:
+                - uuid: 81de02d9c9824b59b1ec07548e4a05f1
+                  expression: |
+                    change(/Template UserGateUTM_My/ifInErrors[{#SNMPVALUE}])>0 and
+                    nodata(/Template UserGateUTM_My/ifInErrors[{#SNMPVALUE}],1m)=0
+                  name: 'Errors on interface {#SNMPVALUE}'
+                  priority: WARNING
+            - uuid: 5684efb2a51b441a94958670ecd9c9c0
+              name: 'Interface {#SNMPVALUE} Incoming non-unicast packets'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifInNUcastPkts.{#SNMPINDEX}'
+              key: 'ifInNUcastPkts[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              description: 'Количество принятых многоадресных/широковещательных пакетов'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: b5395f5b8e11420191f2525c61c61021
+              name: 'Interface {#SNMPVALUE} Incoming traffic'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifInOctets.{#SNMPINDEX}'
+              key: 'ifInOctets[{#SNMPVALUE}]'
+              history: 30d
+              units: bps
+              preprocessing:
+                - type: SIMPLE_CHANGE
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.13'
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: c3b89b8c33c342209d40b48562db556d
+              name: 'Interface {#SNMPVALUE} Incoming unicast packets'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifInUcastPkts.{#SNMPINDEX}'
+              key: 'ifInUcastPkts[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              description: 'Количество принятых одноадресных пакетов'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 43e9d4fab5c146948dd36c6f9b1e1d69
+              name: 'Interface {#SNMPVALUE} Incoming discarded unknown protocol packets'
+              type: SNMP_AGENT
+              snmp_oid: '.ifInUnknownProtos.{#SNMPINDEX}'
+              key: 'ifInUnknownProtos[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 071de8300f994a73ba11aedf967aa687
+              name: 'Interface {#SNMPVALUE} Last change'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifLastChange.{#SNMPINDEX}'
+              key: 'ifLastChange[{#SNMPVALUE}]'
+              delay: 1h
+              history: 30d
+              trends: '0'
+              value_type: TEXT
+              description: |
+                Значение sysUpTime на момент перехода интерфейса
+                в его текущее рабочее состояние.
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 5a8a8ecbcc354c1d97e455993ebcf2a6
+              name: 'Interface {#SNMPVALUE} Interface MTU size'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifMtu.{#SNMPINDEX}'
+              key: 'ifMtu[{#SNMPVALUE}]'
+              delay: 12h
+              history: 30d
+              description: |
+                Размер самой большой дейтаграммы, которая может быть
+                отправлена/получена по интерфейсу, указывается в
+                октетах.
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 24h
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: d4c8238dd4504de8b858ff9deacdfe9a
+              name: 'Interface {#SNMPVALUE} Interface Operational status'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifOperStatus.{#SNMPINDEX}'
+              key: 'ifOperStatus[{#SNMPVALUE}]'
+              history: 30d
+              valuemap:
+                name: 'SNMP interface status (ifOperStatus)'
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              tags:
+                - tag: Application
+                  value: Interface(s)
+              trigger_prototypes:
+                - uuid: 2b8db4ca86064808aa99829b6c698f24
+                  expression: '(last(/Template UserGateUTM_My/ifOperStatus[{#SNMPVALUE}],#1)<>last(/Template UserGateUTM_My/ifOperStatus[{#SNMPVALUE}],#2))>0 and nodata(/Template UserGateUTM_My/ifOperStatus[{#SNMPVALUE}],1m)=0'
+                  name: 'Operational status was changed on interface {#SNMPVALUE}'
+                  priority: INFO
+            - uuid: a396b79c24134975b50cef7ed569e479
+              name: 'Interface {#SNMPVALUE} Outgoing discarded packets'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifOutDiscards.{#SNMPINDEX}'
+              key: 'ifOutDiscards[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: b379b0d6e3f24e8492f1554877ce9f7b
+              name: 'Interface {#SNMPVALUE} Outgoing packets with errors'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifOutErrors.{#SNMPINDEX}'
+              key: 'ifOutErrors[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: aa871347d5544fe3bedbf1e0b2ac946a
+              name: 'Interface {#SNMPVALUE} Outgoing non-unicast packets'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifOutNUcastPkts.{#SNMPINDEX}'
+              key: 'ifOutNUcastPkts[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              description: 'Количество отправленных многоадресных/широковещательных пакетов'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 13a6b7a5b37545ce83723570e2dfb297
+              name: 'Interface {#SNMPVALUE} Outgoing traffic'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifOutOctets.{#SNMPINDEX}'
+              key: 'ifOutOctets[{#SNMPVALUE}]'
+              history: 30d
+              units: bps
+              preprocessing:
+                - type: SIMPLE_CHANGE
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.13'
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: af788366aaee4b688c097677d2c0107e
+              name: 'Interface {#SNMPVALUE} Outgoing packet queue length'
+              type: SNMP_AGENT
+              snmp_oid: 'ifOutQLen.{#SNMPINDEX}'
+              key: 'ifOutQLen[{#SNMPVALUE}]'
+              history: 30d
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1h
+              tags:
+                - tag: Application
+                  value: Interface(s)
+              trigger_prototypes:
+                - uuid: 1a98b5ff5d674c768aab384f0f68be2f
+                  expression: |
+                    last(/Template UserGateUTM_My/ifOutQLen[{#SNMPVALUE}])>0 and
+                    nodata(/Template UserGateUTM_My/ifOutQLen[{#SNMPVALUE}],1m)=0
+                  name: 'Ouput packets queue for {#SNMPVALUE} is not empty'
+                  status: DISABLED
+                  priority: INFO
+            - uuid: 16a18bd2f2694f10a520cd1d67d9a2ae
+              name: 'Interface {#SNMPVALUE} Outgoing unicast packets'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifOutUcastPkts.{#SNMPINDEX}'
+              key: 'ifOutUcastPkts[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              description: 'Количество отправленных одноадресных пакетов'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 81fbdfa164104c07a61e46dbf35a42ee
+              name: 'Interface {#SNMPVALUE} Physical address'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifPhysAddress.{#SNMPINDEX}'
+              key: 'ifPhysAddress[{#SNMPVALUE}]'
+              delay: 12h
+              history: 30d
+              trends: '0'
+              value_type: TEXT
+              description: 'Физический адрес интерфейса'
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: d1697deef96443fd9c2576a24a7837cc
+              name: 'Interface {#SNMPVALUE} Interface Speed'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifSpeed.{#SNMPINDEX}'
+              key: 'ifSpeed[{#SNMPVALUE}]'
+              delay: 5m
+              history: 30d
+              units: bps
+              description: |
+                Because of Gauge32 data size limitations (snmp shows value 1895825408), constantly replacing 10Gbps to 1 Gbps value
+                
+                4294967295 is max value in Gauge32
+                
+                10 Gpbs - 4294967295 - 4294967295 = 1895825408,  breaking all triggers
+              preprocessing:
+                - type: STR_REPLACE
+                  parameters:
+                    - '1895825408'
+                    - '1048576000'
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 758588cfcc844f69ba2c5f9dea558bdc
+              name: 'Interface {#SNMPVALUE} Type'
+              type: SNMP_AGENT
+              snmp_oid: 'UTM-INTERFACES-MIB::ifType.{#SNMPINDEX}'
+              key: 'ifType[{#SNMPVALUE}]'
+              delay: 1h
+              history: 30d
+              trends: '0'
+              value_type: CHAR
+              valuemap:
+                name: 'Type of interface'
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 48420a0a179f4da6959d7bea0a3cd7c7
+              name: 'Interface {#SNMPVALUE} Total throughput'
+              type: CALCULATED
+              key: 'total.throughput.[{#SNMPVALUE}]'
+              history: 30d
+              units: bps
+              params: 'last(//ifInOctets[{#SNMPVALUE}])+ last(//ifOutOctets[{#SNMPVALUE}])'
+              tags:
+                - tag: Application
+                  value: Interface(s)
+          trigger_prototypes:
+            - uuid: 6d84c47ebb70487fafacedee56c6bd4d
+              expression: 'last(/Template UserGateUTM_My/ifSpeed[{#SNMPVALUE}])>0 and (avg(/Template UserGateUTM_My/ifInOctets[{#SNMPVALUE}],300s))>(last(/Template UserGateUTM_My/ifSpeed[{#SNMPVALUE}]))*0.8'
+              name: 'Incoming use on interface {#SNMPVALUE} exceed 80% for the last 5 minutes'
+            - uuid: e482b030527d477bbeea43ff4340624b
+              expression: 'last(/Template UserGateUTM_My/ifAdminStatus[{#SNMPVALUE}])=1 and last(/Template UserGateUTM_My/ifOperStatus[{#SNMPVALUE}])=2'
+              name: 'Operational status of interface {#SNMPVALUE} is DOWN!'
+              priority: HIGH
+            - uuid: d79da9100ca946b9825036b0df6e543d
+              expression: 'last(/Template UserGateUTM_My/ifSpeed[{#SNMPVALUE}])>0 and (avg(/Template UserGateUTM_My/ifOutOctets[{#SNMPVALUE}],300s))>(last(/Template UserGateUTM_My/ifSpeed[{#SNMPVALUE}]))*0.8'
+              name: 'Outgoing use on interface {#SNMPVALUE} exceed 80% for the last 5 minutes'
+          graph_prototypes:
+            - uuid: 6749c993090c4d63baad69b5d39a12f4
+              name: 'Interface {#SNMPVALUE} - Errors'
+              graph_items:
+                - drawtype: GRADIENT_LINE
+                  color: FFAB00
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifInDiscards[{#SNMPVALUE}]'
+                - sortorder: '1'
+                  drawtype: GRADIENT_LINE
+                  color: F51D30
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifInErrors[{#SNMPVALUE}]'
+                - sortorder: '2'
+                  drawtype: GRADIENT_LINE
+                  color: C4FD3D
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifOutDiscards[{#SNMPVALUE}]'
+                - sortorder: '3'
+                  drawtype: GRADIENT_LINE
+                  color: 00694A
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifOutErrors[{#SNMPVALUE}]'
+                - sortorder: '9'
+                  drawtype: GRADIENT_LINE
+                  color: FFC3C0
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifInUcastPkts[{#SNMPVALUE}]'
+            - uuid: 8372c1c499a0485bb4695771ef5262ab
+              name: 'Interface {#SNMPVALUE} - Traffic (bits/sec, 95th Percentile)'
+              percent_left: '0.95'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: 00CF00
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifInOctets[{#SNMPVALUE}]'
+                - sortorder: '1'
+                  drawtype: BOLD_LINE
+                  color: 002A97
+                  item:
+                    host: 'Template UserGateUTM_My'
+                    key: 'ifOutOctets[{#SNMPVALUE}]'
+        - uuid: d7a635e91e394e5cba90e8cfa1bb36df
+          name: 'Logical Network Interfaces'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},IF-MIB::ifName]'
+          key: ifDescr2
+          delay: 3h
+          lifetime: 1d
+          item_prototypes:
+            - uuid: 6c7a4ab1ca9749099e37205ec813e978
+              name: 'Interface {#SNMPVALUE} Incoming traffic 2'
+              type: SNMP_AGENT
+              snmp_oid: '.ifHCInOctets.{#SNMPINDEX}'
+              key: 'ifHCInOctets.[{#SNMPVALUE}]'
+              history: 30d
+              units: bps
+              description: 'The total number of octets received on the interface, 64-bit version of ifInOctets'
+              preprocessing:
+                - type: SIMPLE_CHANGE
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.13'
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 7babd2f1f300459c8996895b0c5ac026
+              name: 'Interface {#SNMPVALUE} Incoming unicast packets 2'
+              type: SNMP_AGENT
+              snmp_oid: '.ifHCInUcastPkts.{#SNMPINDEX}'
+              key: 'ifHCInUcastPkts.[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              description: 'This object is a 64-bit version of ifInUcastPkts'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: ca59a6ddd09d4c4d9260889f990a6399
+              name: 'Interface {#SNMPVALUE} Outgoing traffic 2'
+              type: SNMP_AGENT
+              snmp_oid: '.ifHCOutOctets.{#SNMPINDEX}'
+              key: 'ifHCOutOctets.[{#SNMPVALUE}]'
+              history: 30d
+              units: bps
+              description: 'The total number of octets received on the interface, 64-bit version of ifOutOctets'
+              preprocessing:
+                - type: SIMPLE_CHANGE
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.13'
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: a7e11bd9290347d8a3625d0a1d1de46d
+              name: 'Interface {#SNMPVALUE} Outgoing unicast packets 2'
+              type: SNMP_AGENT
+              snmp_oid: '.ifHCOutUcastPkts.{#SNMPINDEX}'
+              key: 'ifHCOutUcastPkts.[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              description: 'This object is a 64-bit version of ifOutUcastPkts'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: ac6bed48cff1464aa082cf68f841b5c3
+              name: 'Interface {#SNMPVALUE} Interface Speed 2'
+              type: SNMP_AGENT
+              snmp_oid: '.ifHighSpeed.{#SNMPINDEX}'
+              key: 'ifHighSpeed.[{#SNMPVALUE}]'
+              delay: 5m
+              history: 30d
+              units: bps
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1h
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 551938105cab4910b4ee1b302ea1cac6
+              name: 'Interface {#SNMPVALUE} Incoming broadcast packets'
+              type: SNMP_AGENT
+              snmp_oid: '.ifInBroadcastPkts.{#SNMPINDEX}'
+              key: 'ifInBroadcastPkts.[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: a918694fcc8a40468e3e59c3fc98d5e8
+              name: 'Interface {#SNMPVALUE} Incoming multicast packets'
+              type: SNMP_AGENT
+              snmp_oid: '.ifInMulticastPkts.{#SNMPINDEX}'
+              key: 'ifInMulticastPkts.[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 5ddfb7cdcc8c461aac3fb0cdbaa39760
+              name: 'Interface {#SNMPVALUE} Description 2'
+              type: SNMP_AGENT
+              snmp_oid: '.ifName.{#SNMPINDEX}'
+              key: 'ifName.[{#SNMPVALUE}]'
+              delay: 1h
+              history: 30d
+              trends: '0'
+              value_type: CHAR
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 1e18f396bcce49b3853692560f06eb59
+              name: 'Interface {#SNMPVALUE} Outgoing broadcast packets'
+              type: SNMP_AGENT
+              snmp_oid: '.ifOutBroadcastPkts.{#SNMPINDEX}'
+              key: 'ifOutBroadcastPkts.[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 40cfe20928db4aca9f4093a4706ed4b5
+              name: 'Interface {#SNMPVALUE} Outgoing multicast packets'
+              type: SNMP_AGENT
+              snmp_oid: '.ifOutMulticastPkts.{#SNMPINDEX}'
+              key: 'ifOutMulticastPkts.[{#SNMPVALUE}]'
+              history: 30d
+              units: pkts
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: Application
+                  value: Interface(s)
+            - uuid: 6be9ed679dd14ab8b1e5a6d43810e243
+              name: 'Interface {#SNMPVALUE} Total throughput 2'
+              type: CALCULATED
+              key: 'total.throughput.2.[{#SNMPVALUE}]'
+              params: |
+                last(//ifHCInOctets.[{#SNMPVALUE}]) + 
+                last(//ifHCOutOctets.[{#SNMPVALUE}])
+              tags:
+                - tag: Application
+                  value: Interface(s)
+      macros:
+        - macro: '{$CPU_USED_MAX}'
+          value: '70'
+          description: '%'
+        - macro: '{$LOG_USED_MAX}'
+          value: '80'
+          description: '%'
+        - macro: '{$MEM_LOAD_MAX}'
+          value: '80'
+          description: '%'
+        - macro: '{$TRAPPEDTRIGGER_TTL}'
+          value: 5m
+          description: 'Время показа триггера.'
+        - macro: '{$VCPU_USED_MAX}'
+          value: '80'
+          description: '%'
+      valuemaps:
+        - uuid: d123af404c87478c8f37e74b83f90583
+          name: 'SNMP interface status (ifAdminStatus)'
+          mappings:
+            - value: '1'
+              newvalue: up
+            - value: '2'
+              newvalue: down
+            - value: '3'
+              newvalue: testing
+        - uuid: 283751beef7e44caa13ae5bb0ea0619c
+          name: 'SNMP interface status (ifOperStatus)'
+          mappings:
+            - value: '1'
+              newvalue: up
+            - value: '2'
+              newvalue: down
+            - value: '3'
+              newvalue: testing
+            - value: '4'
+              newvalue: unknown
+            - value: '5'
+              newvalue: dormant
+            - value: '6'
+              newvalue: notPresent
+            - value: '7'
+              newvalue: lowerLayerDown
+        - uuid: 4e3c3e1a44f94eb5a42a9e0cdce92266
+          name: 'Type of interface'
+          mappings:
+            - value: '1'
+              newvalue: other
+            - value: '2'
+              newvalue: regular1822
+            - value: '3'
+              newvalue: hdh1822
+            - value: '4'
+              newvalue: ddn-x25
+            - value: '5'
+              newvalue: rfc877-x25
+            - value: '6'
+              newvalue: ethernet-csmacd
+            - value: '7'
+              newvalue: iso88023-csmacd
+            - value: '8'
+              newvalue: iso88024-tokenBus
+            - value: '9'
+              newvalue: iso88025-tokenRing
+            - value: '10'
+              newvalue: iso88026-man
+            - value: '11'
+              newvalue: starLan
+            - value: '12'
+              newvalue: proteon-10Mbit
+            - value: '13'
+              newvalue: proteon-80Mbit
+            - value: '14'
+              newvalue: hyperchannel
+            - value: '15'
+              newvalue: fddi
+            - value: '16'
+              newvalue: lapb
+            - value: '17'
+              newvalue: sdlc
+            - value: '18'
+              newvalue: ds1
+            - value: '19'
+              newvalue: e1
+            - value: '20'
+              newvalue: basicISDN
+            - value: '21'
+              newvalue: primaryISDN
+            - value: '22'
+              newvalue: propPointToPointSerial
+            - value: '23'
+              newvalue: ppp
+            - value: '24'
+              newvalue: softwareLoopback
+            - value: '25'
+              newvalue: eon
+            - value: '26'
+              newvalue: ethernet-3Mbit
+            - value: '27'
+              newvalue: nsip
+            - value: '28'
+              newvalue: slip
+            - value: '29'
+              newvalue: ultra
+            - value: '30'
+              newvalue: ds3
+            - value: '31'
+              newvalue: sip
+            - value: '32'
+              newvalue: frame-relay
+  graphs:
+    - uuid: 6981d665560b42c9839afbbb95a4d689
+      name: 'Usergate Perf'
+      ymin_type_1: FIXED
+      graph_items:
+        - color: 0040FF
+          item:
+            host: 'Template UserGateUTM_My'
+            key: cpuLoad
+        - sortorder: '1'
+          color: 80FF00
+          item:
+            host: 'Template UserGateUTM_My'
+            key: memoryUsed
+        - sortorder: '2'
+          color: FF8000
+          item:
+            host: 'Template UserGateUTM_My'
+            key: usersCounter
+        - sortorder: '3'
+          color: A54F10
+          item:
+            host: 'Template UserGateUTM_My'
+            key: logDiskSpace
+        - sortorder: '4'
+          color: 81D4FA
+          item:
+            host: 'Template UserGateUTM_My'
+            key: vCPU.percentage

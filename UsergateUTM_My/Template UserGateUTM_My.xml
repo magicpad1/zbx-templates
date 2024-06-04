@@ -16,6 +16,8 @@
 https://github.com/AndAndr
 
 Modified template for SNMP Usergate UTM Monitoring
+Different discovery rules for 32 and 64 bit SNMP values
+
 Tested on Usegate D500, Usergate VE2000 
 FW: 6.1.9
 
@@ -1553,11 +1555,11 @@ nodata(/Template UserGateUTM_My/ifOutQLen[{#SNMPVALUE}],1m)=0</expression>
                             <uuid>ca59a6ddd09d4c4d9260889f990a6399</uuid>
                             <name>Interface {#SNMPVALUE} Outgoing traffic 2</name>
                             <type>SNMP_AGENT</type>
-                            <snmp_oid>.ifHCOutMulticastPkts.{#SNMPINDEX}</snmp_oid>
-                            <key>ifHCOutMulticastPkts.[{#SNMPVALUE}]</key>
+                            <snmp_oid>.ifHCOutOctets.{#SNMPINDEX}</snmp_oid>
+                            <key>ifHCOutOctets.[{#SNMPVALUE}]</key>
                             <history>30d</history>
                             <units>bps</units>
-                            <description>The total number of octets received on the interface, 64-bit version of ifInOctets</description>
+                            <description>The total number of octets received on the interface, 64-bit version of ifOutOctets</description>
                             <preprocessing>
                                 <step>
                                     <type>SIMPLE_CHANGE</type>
@@ -1737,6 +1739,20 @@ nodata(/Template UserGateUTM_My/ifOutQLen[{#SNMPVALUE}],1m)=0</expression>
                                     </parameters>
                                 </step>
                             </preprocessing>
+                            <tags>
+                                <tag>
+                                    <tag>Application</tag>
+                                    <value>Interface(s)</value>
+                                </tag>
+                            </tags>
+                        </item_prototype>
+                        <item_prototype>
+                            <uuid>6be9ed679dd14ab8b1e5a6d43810e243</uuid>
+                            <name>Interface {#SNMPVALUE} Total throughput 2</name>
+                            <type>CALCULATED</type>
+                            <key>total.throughput.2.[{#SNMPVALUE}]</key>
+                            <params>last(//ifHCInOctets.[{#SNMPVALUE}]) + 
+last(//ifHCOutOctets.[{#SNMPVALUE}])</params>
                             <tags>
                                 <tag>
                                     <tag>Application</tag>
