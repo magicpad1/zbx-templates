@@ -1,0 +1,2 @@
+# zbx-templates
+Zabbix Templates
