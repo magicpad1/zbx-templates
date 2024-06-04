@@ -1,4 +1,4 @@
-Modified template for Vipnet HW Coordinator SNMP Monitoring.
+Modified template for Vipnet HW Coordinator Zabbix SNMP Monitoring.
 Unfortunatly, didn't have the origin link.
 
 Tested on Vipnet HW1000 Q8.
